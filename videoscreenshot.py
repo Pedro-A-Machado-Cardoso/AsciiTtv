@@ -3,6 +3,7 @@ import cv2
 import time
 from ascii import Ascii
 import sys
+import json
 
 class VideoScreenshot(object):
     def __init__(self, src=0):
@@ -31,7 +32,7 @@ class VideoScreenshot(object):
         # Display frames in main program
         if self.status:
             frame = Ascii(self.frame)
-            asciiFrame = frame.imgToAscii()
+            asciiFrame = frame.imgToAscii(colored=json.loads(open('config.json', 'r+', encoding='utf-8').read())['colored'])
             sys.stdout.write(asciiFrame)
             sys.stdout.flush()
             print(f'\033[{frame.height + 2}A\033[2K', end='')

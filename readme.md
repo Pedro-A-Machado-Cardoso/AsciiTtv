@@ -6,7 +6,7 @@ A simple twitch.tv to console ascii converter. Made in under a day, so don't min
 
 - [Installation](#installation)
 - [Usage](#usage-tips)
-- [TODO]
+- [TODO](#todo)
 - [Config file](#config)
 - [Support](#support)
 - [Contributing](#contributing)
@@ -33,15 +33,16 @@ python3.11 -Xutf8 stream.py
 At watchable resolutions, the program uses a lot of symbols at once, thus requiring you to zoom out. To do so, either use `ctrl+scroll wheel`, or `crtl+-`.
 
 ## TODO
-Add a color toggle, and actual interfacing
+Actual interface, audio maybe?
 
 ## Config
 
-Config options are streamer, resolution and tileset. 
+Config options are streamer, resolution, tileset and colored. 
 
 - Streamer: Specifies which stream to put in the terminal. Use the same as its shown in the url (all lowercase).
 - Resolution: specifies how many pixels will be skipped (so higher = smaller output).
 - Tileset: What symbols to use for ASCII display. For correct behavior, make it a single string with no spaces. To the left the "white" tiles, making a gradient into "black" tiles.
+- Colored: Defines if your terminal will be colored or monochrome (1 = true, 0 = false. On by default.)
 
 ## Support
 

@@ -1,5 +1,6 @@
 {
     "streamer": "example",
     "resolution": 3,
-    "tileset": "█▓⠿¶⠾⠶⠴⠦⠒⠂⠀"
+    "tileset": "█▓⠿¶⠾⠶⠴⠦⠒⠂⠀",
+    "colored": 1
 }
