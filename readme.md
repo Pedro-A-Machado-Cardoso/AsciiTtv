@@ -5,7 +5,7 @@ A simple twitch.tv to console ascii converter. Made in under a day, so don't min
 ## Table of Contents
 
 - [Installation](#installation)
-- [Usage](#usage)
+- [Config file](#config)
 - [Support](#support)
 - [Contributing](#contributing)
 
