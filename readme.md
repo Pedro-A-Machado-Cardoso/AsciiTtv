@@ -19,11 +19,11 @@ python3.11 -m venv .venv
 source .venv/bin/activate
 ```
 
-Install all requirements, edit [config.json](#config), run
+Install all requirements, edit [config.json](#config), run with utf8 flag
 
 ```sh
 pip install requirements.txt
-python3.11 stream.py
+python3.11 -Xutf8 stream.py
 ```
 
 ## Config

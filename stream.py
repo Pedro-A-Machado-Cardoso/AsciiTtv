@@ -3,6 +3,7 @@ import cv2
 from videoscreenshot import VideoScreenshot
 import time
 import json
+import os
 
 def stream_to_url(url, quality='best'):
     streams = streamlink.streams(url)
@@ -11,7 +12,8 @@ def stream_to_url(url, quality='best'):
     else:
         raise ValueError("No streams were available.")
 
-channel_url = f"www.twitch.tv/{json.dumps(json.loads(open("config.json", "r+").read())["streamer"])}"
+streamer = json.dumps(json.loads(open('config.json', 'r+', encoding='utf-8').read())['streamer']).replace('"', "")
+channel_url = f"www.twitch.tv/{streamer}"
 framecount = 0
 try:
     stream_url = stream_to_url(channel_url, 'best')

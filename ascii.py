@@ -5,11 +5,11 @@ import json
 import sys
 
 class Ascii:
-    def __init__(self, img: cv2.typing.MatLike, res=json.dumps(json.loads(open("config.json", "r+").read())["resolution"])):
+    def __init__(self, img: cv2.typing.MatLike, res=int(json.dumps(json.loads(open("config.json", "r", encoding='utf-8').read())["resolution"]))):
         self.res = res
         self.img = img
         self.height, self.width, self.channels = self.img.shape
-        self.colors = json.dumps(json.loads(open("config.json", "r+").read())["tileset"])
+        self.colors = json.loads(open("config.json", "r", encoding='utf-8').read())["tileset"]
         self.ascii = ""
     
     def pixelClamp(self, x : int, y : int):
@@ -24,6 +24,7 @@ class Ascii:
     
     def imgToAscii(self):
         ascii = ""
+        # print(self.colors.encode("utf-8"))
         for h in range(math.floor(self.height/self.res)):
             for w in range(math.floor(self.width/self.res)):
                 clamp = self.pixelClamp(h*self.res - 1, w*self.res - 1)
