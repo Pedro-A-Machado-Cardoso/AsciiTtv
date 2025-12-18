@@ -16,7 +16,7 @@ class Display(object):
         # Create a VideoCapture object
         self.capture = cv2.VideoCapture(src, cv2.CAP_FFMPEG)
         self.capture.set(cv2.CAP_PROP_BUFFERSIZE, 1)
-        self.capture.set(cv2.CAP_PROP_FPS, 30)
+        self.capture.set(cv2.CAP_PROP_FPS, 60)
 
         self.frame_queue = queue.Queue(maxsize=1)
         self.latestTime = 0
@@ -91,10 +91,10 @@ class Display(object):
                                     live.update(text)
                                 time.sleep(.1)
             else:
-                self.chafaThread = Thread(target=self.chafaDisplay, args=())
+                self.chafaThread = Thread(target=self.chafaDisplay, args=(int(json.dumps(json.loads(open("config.json", "r", encoding='utf-8').read())["resolution"])),))
                 self.chafaThread.daemon = True
                 self.chafaThread.start()
-                with Live("", console=console, refresh_per_second=30, screen=True) as live:
+                with Live("", console=console, refresh_per_second=60, screen=True) as live:
                     while True:
                         if self.status:
                             if self.display:
@@ -103,9 +103,9 @@ class Display(object):
         except queue.Empty:
             print("Queue empty!")
 
-    def chafaDisplay(self):
-        while self.capture.isOpened():   
+    def chafaDisplay(self, res):
+        while self.capture.isOpened():
             frame = self.frame.copy()
-            self.display = ChafaDisplay(frame).draw()
-            time.sleep(0.1)
+            self.display = ChafaDisplay(frame, res).draw()
+            # time.sleep(0.5)
         

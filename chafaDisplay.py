@@ -4,7 +4,7 @@ import json
 import cv2
 
 class ChafaDisplay:
-    def __init__(self, img, res=int(json.dumps(json.loads(open("config.json", "r", encoding='utf-8').read())["resolution"]))):
+    def __init__(self, img, res=10):
         self.config = CanvasConfig()
         self.res = res
         self.config.height = 1080//res
