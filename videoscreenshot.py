@@ -1,17 +1,23 @@
+import queue
 from threading import Thread
 import cv2
-import time
 from ascii import Ascii
-import sys
 import json
+from rich.live import Live
+from rich.console import Console
+from rich.text import Text
+
 
 class VideoScreenshot(object):
     def __init__(self, src=0):
+        self.colored = json.loads(open('config.json', 'r+', encoding='utf-8').read())['colored']
         # Create a VideoCapture object
         self.capture = cv2.VideoCapture(src)
+        self.capture.set(cv2.CAP_PROP_BUFFERSIZE, 1)
+        self.capture.set(cv2.CAP_PROP_FPS, 20)
 
-        # Take screenshot every x seconds
-        self.screenshot_interval = 0.05
+        self.frame_queue = queue.Queue(maxsize=1)
+        self.latest = None
 
         # Default resolutions of the frame are obtained (system dependent)
         self.frame_width = int(self.capture.get(3))
@@ -21,38 +27,50 @@ class VideoScreenshot(object):
         self.thread = Thread(target=self.update, args=())
         self.thread.daemon = True
         self.thread.start()
+        self.asciiQ = queue.Queue(maxsize=1)
 
     def update(self):
         # Read the next frame from the stream in a different thread
-        while True:
-            if self.capture.isOpened():
-                (self.status, self.frame) = self.capture.read()
+        while self.capture.isOpened():
+            (self.status, self.frame) = self.capture.read()
+            if not self.status:
+                continue
+            # Drop old frame if queue is full
+            if self.frame_queue.full():
+                try:
+                    while self.frame_queue.qsize() > 0:
+                        self.frame_queue.get()
+                except queue.Empty:
+                    pass
+
+            self.frame_queue.put_nowait(self.frame)
+            self.latest = self.frame
+
+    def renderToAscii(self):
+        while self.capture.isOpened():
+            qframe = self.frame_queue.get()
+            frame = Ascii(qframe)
+            frame = frame.imgToAscii(self.colored)
+            if self.asciiQ.qsize() > 0:
+                self.asciiQ.get_nowait()
+            self.asciiQ.put_nowait(frame)
 
     def show_frame(self):
-        # Display frames in main program
-        if self.status:
-            frame = Ascii(self.frame)
-            asciiFrame = frame.imgToAscii(colored=json.loads(open('config.json', 'r+', encoding='utf-8').read())['colored'])
-            sys.stdout.write(asciiFrame)
-            sys.stdout.flush()
-            print(f'\033[{frame.height + 2}A\033[2K', end='')
+        console = Console()
+        try:
 
-        # Press Q on keyboard to stop recording
-        key = cv2.waitKey(1)
-        if key == ord('q'):
-            self.capture.release()
-            cv2.destroyAllWindows()
-            exit(1)
+            self.asciiThread = Thread(target=self.renderToAscii, args=())
+            self.asciiThread.daemon = True
+            self.asciiThread.start()
+            with Live("", console=console, refresh_per_second=20, screen=True) as live:
+                while True:
+                    if self.status:
+                        if self.asciiQ.qsize() > 0:
+                            text = self.asciiQ.get()
+                            if self.colored:
+                                live.update(Text.from_ansi(text))
+                            else:
+                                live.update(text)
 
-    def save_frame(self):
-        # Save obtained frame periodically
-        self.frame_count = 0
-        def save_frame_thread():
-            while True:
-                try:
-                    cv2.imwrite('frame_{}.png'.format(self.frame_count), self.frame)
-                    self.frame_count += 1
-                    time.sleep(self.screenshot_interval)
-                except AttributeError:
-                    pass
-        Thread(target=save_frame_thread, args=()).start()
+        except queue.Empty:
+            print("H")

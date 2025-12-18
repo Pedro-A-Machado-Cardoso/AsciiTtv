@@ -1,9 +1,7 @@
 import cv2
-import numpy as np
 import math
 import json
 import sys
-import colorama
 from colorama import Fore
 
 class Ascii:
@@ -32,7 +30,7 @@ class Ascii:
         try:
             pixel = self.img[x, y]
         except:
-            return len(self.colors)
+            return self.colors[len(self.colors)]
         levels = len(self.colors)
         avg = (pixel[0] + pixel[1] + pixel[2])/3
         clamp = levels - round(avg/levels) - 1
@@ -42,16 +40,13 @@ class Ascii:
             return self.colors[clamp]
     
     def imgToAscii(self, colored=False):
-        colorama.init(autoreset=True)
         ascii = ""
-        # print(self.colors.encode("utf-8"))
         for h in range(math.floor(self.height/self.res)):
             for w in range(math.floor(self.width/self.res)):
                 symbol = self.pixelClamp(h*self.res - 1, w*self.res - 1, colored)
                 ascii += symbol
             ascii += "\n"
         ascii.removesuffix("\n")
-        self.ascii = ascii
         return ascii
     
     def printAscii(self):

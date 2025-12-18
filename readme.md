@@ -22,15 +22,15 @@ python3.11 -m venv .venv
 source .venv/bin/activate
 ```
 
-Install all requirements, edit [config.json](#config), run with utf8 flag
+Install all requirements, edit [config.json](#config), run
 
 ```sh
 pip install -r requirements.txt
-python3.11 -Xutf8 stream.py
+python3.11 stream.py
 ```
 
 ## Usage tips
-At watchable resolutions, the program uses a lot of symbols at once, thus requiring you to zoom out. To do so, either use `ctrl+scroll wheel`, or `crtl+-`.
+At watchable resolutions, the program uses a lot of symbols at once, thus requiring you to zoom out. To do so, either use `ctrl+scroll wheel`, or `crtl+-`. Do so before rendering kicks in, however (when it says it will start)
 
 ## TODO
 Actual interface, audio maybe?
@@ -42,7 +42,7 @@ Config options are streamer, resolution, tileset and colored.
 - Streamer: Specifies which stream to put in the terminal. Use the same as its shown in the url (all lowercase).
 - Resolution: specifies how many pixels will be skipped (so higher = smaller output).
 - Tileset: What symbols to use for ASCII display. For correct behavior, make it a single string with no spaces. To the left the "white" tiles, making a gradient into "black" tiles.
-- Colored: Defines if your terminal will be colored or monochrome (1 = true, 0 = false. On by default.)
+- Colored: Defines if your terminal will be colored or monochrome. Note that making the output colored *severely* impacts rendering speeds. (1 = true, 0 = false. Off by default.)
 
 ## Support
 
