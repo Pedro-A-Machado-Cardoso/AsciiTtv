@@ -45,9 +45,9 @@ class Display(object):
                 ret, frame = self.capture.retrieve()
                 self.status = ret
                 if ret:
-                    
                     self.frame = frame
                     self.latestTime = now
+                    self.frame_queue.put(self.frame)
             
             if self.frame_queue.full():
                 try:
@@ -55,17 +55,16 @@ class Display(object):
                         self.frame_queue.get()
                 except queue.Empty:
                     pass
-
-                self.frame_queue.put_nowait(self.frame)
+                
 
     def renderToAscii(self):
         while self.capture.isOpened():
-            qframe = self.frame_queue.get()
+            qframe = self.frame
             frame = Ascii(qframe)
             frame = frame.imgToAscii(self.colored)
-            if self.asciiQ.qsize() > 0:
-                self.asciiQ.get_nowait()
-            self.asciiQ.put_nowait(frame)
+            if self.asciiQ.qsize() > 100:
+                self.asciiQ.get()
+            self.asciiQ.put(frame)
 
     def show_frame(self):
         console = Console(
@@ -83,8 +82,6 @@ class Display(object):
                 self.asciiThread.start()
                 with Live("", console=console, refresh_per_second=10, screen=True) as live:
                     while True:
-                        cv2.imshow("Preview", self.frame)
-                        cv2.waitKey(1)
                         if self.status:
                             if self.asciiQ.qsize() > 0:
                                 text = self.asciiQ.get()
