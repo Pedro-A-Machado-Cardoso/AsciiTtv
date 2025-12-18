@@ -6,18 +6,20 @@ import json
 from rich.live import Live
 from rich.console import Console
 from rich.text import Text
+import time
+from chafaDisplay import ChafaDisplay
 
 
-class VideoScreenshot(object):
+class Display(object):
     def __init__(self, src=0):
         self.colored = json.loads(open('config.json', 'r+', encoding='utf-8').read())['colored']
         # Create a VideoCapture object
-        self.capture = cv2.VideoCapture(src)
+        self.capture = cv2.VideoCapture(src, cv2.CAP_FFMPEG)
         self.capture.set(cv2.CAP_PROP_BUFFERSIZE, 1)
-        self.capture.set(cv2.CAP_PROP_FPS, 20)
+        self.capture.set(cv2.CAP_PROP_FPS, 30)
 
         self.frame_queue = queue.Queue(maxsize=1)
-        self.latest = None
+        self.latestTime = 0
 
         # Default resolutions of the frame are obtained (system dependent)
         self.frame_width = int(self.capture.get(3))
@@ -28,14 +30,25 @@ class VideoScreenshot(object):
         self.thread.daemon = True
         self.thread.start()
         self.asciiQ = queue.Queue(maxsize=1)
+        self.status = None
+
+        # Chafa
+        self.display = None
 
     def update(self):
         # Read the next frame from the stream in a different thread
         while self.capture.isOpened():
-            (self.status, self.frame) = self.capture.read()
-            if not self.status:
-                continue
+            self.capture.grab()
             # Drop old frame if queue is full
+            now = time.monotonic()
+            if now - self.latestTime >= 1/30:
+                ret, frame = self.capture.retrieve()
+                self.status = ret
+                if ret:
+                    
+                    self.frame = frame
+                    self.latestTime = now
+            
             if self.frame_queue.full():
                 try:
                     while self.frame_queue.qsize() > 0:
@@ -43,8 +56,7 @@ class VideoScreenshot(object):
                 except queue.Empty:
                     pass
 
-            self.frame_queue.put_nowait(self.frame)
-            self.latest = self.frame
+                self.frame_queue.put_nowait(self.frame)
 
     def renderToAscii(self):
         while self.capture.isOpened():
@@ -56,21 +68,47 @@ class VideoScreenshot(object):
             self.asciiQ.put_nowait(frame)
 
     def show_frame(self):
-        console = Console()
+        console = Console(
+            force_terminal=True,
+            markup=False,
+            highlight=False,
+            emoji=False
+        )
+        
+        usechafa = int(json.loads(open('config.json', 'r+', encoding='utf-8').read())['usechafa'])
         try:
-
-            self.asciiThread = Thread(target=self.renderToAscii, args=())
-            self.asciiThread.daemon = True
-            self.asciiThread.start()
-            with Live("", console=console, refresh_per_second=20, screen=True) as live:
-                while True:
-                    if self.status:
-                        if self.asciiQ.qsize() > 0:
-                            text = self.asciiQ.get()
-                            if self.colored:
-                                live.update(Text.from_ansi(text))
-                            else:
-                                live.update(text)
+            if not usechafa:
+                self.asciiThread = Thread(target=self.renderToAscii, args=())
+                self.asciiThread.daemon = True
+                self.asciiThread.start()
+                with Live("", console=console, refresh_per_second=10, screen=True) as live:
+                    while True:
+                        cv2.imshow("Preview", self.frame)
+                        cv2.waitKey(1)
+                        if self.status:
+                            if self.asciiQ.qsize() > 0:
+                                text = self.asciiQ.get()
+                                if self.colored:
+                                    live.update(Text.from_ansi(text))
+                                else:
+                                    live.update(text)
+                                time.sleep(.1)
+            else:
+                self.chafaThread = Thread(target=self.chafaDisplay, args=())
+                self.chafaThread.daemon = True
+                self.chafaThread.start()
+                with Live("", console=console, refresh_per_second=30, screen=True) as live:
+                    while True:
+                        if self.status:
+                            if self.display:
+                                live.update(Text.from_ansi(self.display))
 
         except queue.Empty:
-            print("H")
+            print("Queue empty!")
+
+    def chafaDisplay(self):
+        while self.capture.isOpened():   
+            frame = self.frame.copy()
+            self.display = ChafaDisplay(frame).draw()
+            time.sleep(0.1)
+        
