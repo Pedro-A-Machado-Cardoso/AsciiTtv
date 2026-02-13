@@ -51,4 +51,4 @@ Please [open an issue](https://github.com/Pedro-A-Machado-Cardoso/AsciiTtv/issue
 
 ## Contributing
 
-Please contribute! This is a small project, if you wish to contribute, please contact me for it. Discord is `duhon`.
+Please contribute! This is a small project, if you wish to contribute, please contact me for it.
